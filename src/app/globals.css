@@ -166,6 +166,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Reserve space for vertical scrollbar to prevent layout shift */
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground;
   }
