@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 
 function BrandIcon() {
@@ -27,6 +31,8 @@ const navItems = [
 ] as const;
 
 export function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <header
       className="sticky top-0 z-50 border-b border-muted-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -41,8 +47,11 @@ export function Header() {
           <BrandIcon />
           <span>Cross Wave Media</span>
         </Link>
-        <div className="flex flex-1 items-center justify-end gap-6">
-          <nav aria-label="Main navigation">
+        <div className="flex flex-1 items-center justify-end gap-4">
+          <nav
+            aria-label="Main navigation"
+            className="hidden md:block"
+          >
             <ul className="flex items-center gap-6">
               {navItems.map(({ href, label }) => (
                 <li key={href}>
@@ -56,9 +65,49 @@ export function Header() {
               ))}
             </ul>
           </nav>
-          <ModeToggle />
+
+          <div className="hidden md:block">
+            <ModeToggle />
+          </div>
+
+          <div className="flex items-center gap-2 md:hidden">
+            <ModeToggle />
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((open) => !open)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-muted-border bg-background/80 text-foreground shadow-sm backdrop-blur transition-colors hover:border-foreground/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-label={isMenuOpen ? "Close main menu" : "Open main menu"}
+              aria-expanded={isMenuOpen}
+            >
+              {isMenuOpen ? (
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
+
+      {isMenuOpen && (
+        <div className="border-t border-muted-border bg-background md:hidden">
+          <nav aria-label="Mobile main navigation">
+            <ul className="flex flex-col gap-1 px-4 py-3">
+              {navItems.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="block rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

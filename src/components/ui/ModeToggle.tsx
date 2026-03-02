@@ -34,7 +34,7 @@ export function ModeToggle() {
       type="button"
       onClick={handleToggle}
       aria-label="Toggle color mode"
-      className="inline-flex h-9 min-w-[96px] items-center justify-center gap-2 rounded-full border border-muted-border bg-background/80 px-3 text-xs font-medium text-foreground shadow-sm backdrop-blur transition-colors duration-200 hover:border-foreground/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground/80 focus-visible:ring-offset-background"
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-muted-border bg-background/80 text-foreground shadow-sm backdrop-blur transition-colors duration-200 hover:border-foreground/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground/80 focus-visible:ring-offset-background sm:min-w-[96px] sm:w-auto sm:gap-2 sm:px-3 sm:text-xs sm:font-medium"
     >
       {isDark ? (
         <>
