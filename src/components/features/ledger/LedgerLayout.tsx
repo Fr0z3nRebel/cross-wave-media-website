@@ -44,14 +44,11 @@ export function LedgerLayout({
         aria-label="The Ledger — Scripture-linked articles"
       >
         <header className="mb-8 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground dark:text-brand-gold">
             The Ledger
           </p>
           <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            <span className="text-accent-teal dark:text-brand-gold">
-              Scripture-linked
-            </span>{" "}
-            analysis for a complex world
+              Scripture-linked analysis for a complex world
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Explore world events, theological commentary, and daily devotionals

@@ -11,7 +11,7 @@ export default function LibraryPage() {
   return (
     <main className="bg-background">
       <section
-        className="border-b border-muted-border py-16 dark:border-muted-border"
+        className="border-b border-muted-border py-12 dark:border-muted-border"
         aria-labelledby="library-heading"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -33,7 +33,7 @@ export default function LibraryPage() {
       </section>
 
       <section
-        className="py-16"
+        className="py-12"
         aria-label="Filterable resource library"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
