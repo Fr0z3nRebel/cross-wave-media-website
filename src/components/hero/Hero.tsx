@@ -10,12 +10,16 @@ export function Hero() {
       aria-label="Hero"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid min-h-[70vh] grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="grid min-h-0 grid-cols-1 items-center gap-6 py-12 lg:grid-cols-2 lg:gap-8">
           <HeroContent />
-          <HeroImage />
+          <div className="px-4 lg:px-8">
+            <HeroImage src="/prophecy-news-cross-at-sunrise.webp" />
+          </div>
+        </div>
+        <div className="mt-8 mb-4">
+          <ScriptureToWorldMarquee />
         </div>
       </div>
-      <ScriptureToWorldMarquee />
       <WaveDivider fill="background" placement="bottom" />
     </section>
   );
