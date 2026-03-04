@@ -20,6 +20,12 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Database Tables
+
+- **`prayer_requests`** — Stores each public prayer request (content, author name or anonymous, tags, support count, timestamps).
+- **`prayer_support`** — Records “I prayed for this” clicks; one row per prayer per IP hash so each IP can support a request only once.
+- **`profiles`** — Optional user profiles linked to Supabase Auth (`auth.users`), for display name, avatar, bio, and timestamps.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

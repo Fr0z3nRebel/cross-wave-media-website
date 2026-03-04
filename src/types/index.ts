@@ -52,3 +52,6 @@ export interface PrayerRequest {
   tags: PrayerTag[]; // e.g., "Healing", "Guidance"
   createdAt: ISODateString;
 }
+
+export * from "./prayer";
+

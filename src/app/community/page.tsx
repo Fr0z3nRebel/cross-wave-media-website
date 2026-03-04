@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { PrayerRequest } from "@/types";
 import { PrayerCard } from "@/components/features/community/PrayerCard";
@@ -15,47 +15,38 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
-const INITIAL_PRAYERS: PrayerRequest[] = [
-  {
-    id: "prayer-1",
-    content:
-      "Praying for wisdom and courage to follow Jesus faithfully in a polarized workplace.",
-    authorName: "Daniel K.",
-    isAnonymized: false,
-    supportCount: 18,
-    tags: ["Wisdom", "Vocation"],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "prayer-2",
-    content:
-      "Asking the Lord to comfort a close friend walking through grief and uncertainty this year.",
-    authorName: "Anonymous",
-    isAnonymized: true,
-    supportCount: 32,
-    tags: ["Comfort", "Grief"],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "prayer-3",
-    content:
-      "Seeking clarity about how to serve my local church and neighborhood with the gifts God has given.",
-    authorName: "Maria",
-    isAnonymized: false,
-    supportCount: 9,
-    tags: ["Calling", "Church"],
-    createdAt: new Date().toISOString(),
-  },
-];
+import { TurnstileWidget } from "@/components/features/community/TurnstileWidget";
+import type { SubmitPrayerResult } from "@/types/prayer";
 
 export default function CommunityPage() {
-  const [prayers, setPrayers] = useState<PrayerRequest[]>(INITIAL_PRAYERS);
+  const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPrayers() {
+      try {
+        const res = await fetch("/api/prayer-requests");
+        if (!res.ok) return;
+        const { prayers: data } = (await res.json()) as {
+          prayers: PrayerRequest[];
+        };
+        setPrayers(data ?? []);
+      } catch {
+        // Keep empty on error
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPrayers();
+  }, []);
   const [name, setName] = useState("");
   const [request, setRequest] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const trimmedRequest = request.trim();
@@ -63,20 +54,54 @@ export default function CommunityPage() {
 
     if (!trimmedRequest) return;
 
-    const next: PrayerRequest = {
-      id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      content: trimmedRequest,
-      authorName: isAnonymous ? "Anonymous" : trimmedName || "Anonymous",
-      isAnonymized: isAnonymous || !trimmedName,
-      supportCount: 0,
-      tags: [],
-      createdAt: new Date().toISOString(),
-    };
+    setSubmitError(null);
+    setSubmitting(true);
 
-    setPrayers((prev) => [next, ...prev]);
-    setName("");
-    setRequest("");
-    setIsAnonymous(false);
+    try {
+      const response = await fetch("/api/prayer-requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: trimmedRequest,
+          authorName: trimmedName || "Anonymous",
+          isAnonymized: isAnonymous || !trimmedName,
+          tags: [],
+          turnstileToken: turnstileToken ?? "",
+        }),
+      });
+
+      const result = (await response.json()) as SubmitPrayerResult;
+
+      if (!result.success) {
+        setSubmitError(result.error);
+        return;
+      }
+
+      const created = result.prayer;
+
+      const next: PrayerRequest = {
+        id: created.id,
+        content: created.content,
+        authorName: created.authorName,
+        isAnonymized: created.isAnonymized,
+        supportCount: created.supportCount,
+        tags: created.tags,
+        createdAt: created.createdAt,
+      };
+
+      setPrayers((prev) => [next, ...prev]);
+      setName("");
+      setRequest("");
+      setIsAnonymous(false);
+      setTurnstileToken(null);
+      setSubmitError(null);
+    } catch {
+      setSubmitError("Something went wrong while submitting your request.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -107,11 +132,21 @@ export default function CommunityPage() {
 
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(280px,0.9fr)] lg:items-start">
           <div className="space-y-5">
-            <AnimatePresence>
-              {prayers.map((prayer) => (
-                <PrayerCard key={prayer.id} request={prayer} />
-              ))}
-            </AnimatePresence>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">
+                Loading prayers…
+              </p>
+            ) : prayers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No prayers on the wall yet. Be the first to share a request.
+              </p>
+            ) : (
+              <AnimatePresence>
+                {prayers.map((prayer) => (
+                  <PrayerCard key={prayer.id} request={prayer} />
+                ))}
+              </AnimatePresence>
+            )}
           </div>
 
           <aside
@@ -240,13 +275,22 @@ export default function CommunityPage() {
                       </button>
                     </div>
 
+                    <TurnstileWidget
+                      onToken={(token) => setTurnstileToken(token)}
+                    />
+
+                    {submitError && (
+                      <p className="text-xs text-red-500">{submitError}</p>
+                    )}
+
                     <DialogFooter className="pt-2">
                       <DialogClose asChild>
                         <button
                           type="submit"
+                          disabled={submitting}
                           className="inline-flex w-full items-center justify-center rounded-full border border-accent-teal/60 bg-accent-teal/10 px-4 py-2.5 text-sm font-medium text-accent-teal shadow-[0_0_0_1px_rgba(45,212,191,0.35)] transition-colors hover:bg-accent-teal/20 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-brand-gold/70 dark:bg-brand-gold/90 dark:text-brand-navy dark:shadow-[0_18px_45px_rgba(250,204,21,0.35)] dark:hover:bg-brand-gold dark:focus-visible:ring-brand-gold"
                         >
-                          Send to the wall
+                          {submitting ? "Sending…" : "Send to the wall"}
                         </button>
                       </DialogClose>
                     </DialogFooter>

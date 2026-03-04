@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { PrayerRequest } from "@/types";
 import { cn } from "@/lib/utils";
+import type { SupportPrayerResult } from "@/types/prayer";
 
 interface PrayerCardProps {
   request: PrayerRequest;
@@ -12,6 +13,8 @@ interface PrayerCardProps {
 export function PrayerCard({ request }: PrayerCardProps) {
   const [supportCount, setSupportCount] = useState(request.supportCount);
   const [isPulsing, setIsPulsing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alreadySupported, setAlreadySupported] = useState(false);
 
   const authorLabel = useMemo(() => {
     if (request.isAnonymized) {
@@ -34,9 +37,49 @@ export function PrayerCard({ request }: PrayerCardProps) {
     });
   }, [request.createdAt]);
 
-  function handlePrayedClick() {
+  async function handlePrayedClick() {
+    if (isSubmitting || alreadySupported) return;
+
+    // Optimistic update: show new count immediately
     setSupportCount((prev) => prev + 1);
     setIsPulsing(true);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `/api/prayer-requests/${encodeURIComponent(request.id)}/support`,
+        {
+          method: "POST",
+        },
+      );
+
+      const result = (await response.json()) as SupportPrayerResult;
+
+      if (!result.success) {
+        if (
+          result.error.toLowerCase().includes("already prayed") ||
+          result.error.toLowerCase().includes("already supported")
+        ) {
+          setAlreadySupported(true);
+        }
+
+        // Revert to server count (already supported = no increment; other errors = revert)
+        if (typeof result.supportCount === "number") {
+          setSupportCount(result.supportCount);
+        } else {
+          setSupportCount((prev) => prev - 1);
+        }
+
+        return;
+      }
+
+      // Success: count already correct from optimistic update
+    } catch {
+      // Network error: revert optimistic update
+      setSupportCount((prev) => prev - 1);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -108,18 +151,31 @@ export function PrayerCard({ request }: PrayerCardProps) {
             <motion.button
               type="button"
               onClick={handlePrayedClick}
+              disabled={isSubmitting || alreadySupported}
               whileTap={{ scale: 0.94 }}
               animate={
                 isPulsing
-                  ? { scale: [1, 1.06, 1], boxShadow: ["0 0 0 0 rgba(250,204,21,0.5)", "0 0 0 12px rgba(250,204,21,0)", "0 0 0 0 rgba(250,204,21,0)"] }
+                  ? {
+                      scale: [1, 1.06, 1],
+                      boxShadow: [
+                        "0 0 0 0 rgba(250,204,21,0.5)",
+                        "0 0 0 12px rgba(250,204,21,0)",
+                        "0 0 0 0 rgba(250,204,21,0)",
+                      ],
+                    }
                   : {}
               }
               transition={{ duration: 0.45, ease: "easeOut" }}
               onAnimationComplete={() => setIsPulsing(false)}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-background/40 px-4 py-1.5 text-xs font-medium text-accent-teal shadow-[0_0_0_1px_rgba(15,23,42,0.3)] backdrop-blur-md transition-all duration-300 hover:bg-accent-teal/10 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-brand-gold/40 dark:bg-brand-gold/10 dark:text-brand-paper dark:shadow-[0_0_0_1px_rgba(250,204,21,0.3)] dark:hover:bg-brand-gold/20 dark:hover:shadow-[0_0_0_1px_rgba(250,204,21,0.5)] dark:focus-visible:ring-brand-gold dark:focus-visible:ring-offset-brand-navy"
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full border border-white/15 bg-background/40 px-4 py-1.5 text-xs font-medium text-accent-teal shadow-[0_0_0_1px_rgba(15,23,42,0.3)] backdrop-blur-md transition-all duration-300 hover:bg-accent-teal/10 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-brand-gold/40 dark:bg-brand-gold/10 dark:text-brand-paper dark:shadow-[0_0_0_1px_rgba(250,204,21,0.3)] dark:hover:bg-brand-gold/20 dark:hover:shadow-[0_0_0_1px_rgba(250,204,21,0.5)] dark:focus-visible:ring-brand-gold dark:focus-visible:ring-offset-brand-navy",
+                alreadySupported || isSubmitting
+                  ? "opacity-70 cursor-not-allowed"
+                  : "",
+              )}
             >
               <span className="h-1.5 w-1.5 rounded-full bg-accent-teal dark:bg-brand-gold" />
-              I Prayed for This
+              {alreadySupported ? "Thank you" : "I Prayed for This"}
             </motion.button>
           </div>
         </div>
