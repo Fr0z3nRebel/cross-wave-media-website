@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { ModeToggle } from "@/components/ui/ModeToggle";
+import { AuthDialog } from "@/components/auth/AuthDialog";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { cn } from "@/lib/utils";
 
 function BrandIcon() {
   return (
@@ -32,6 +35,11 @@ const navItems = [
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, supabase, loading } = useAuth();
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+  }
 
   return (
     <header
@@ -66,12 +74,31 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="hidden md:block">
+          <div className="hidden items-center gap-3 md:flex">
             <ModeToggle />
+            {!loading && !user && <AuthDialog />}
+            {!loading && user && (
+              <div className="flex items-center gap-2">
+                <span className="truncate text-xs font-medium text-muted-foreground max-w-[10rem]">
+                  {user.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-full border border-muted-border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-accent-teal/60 hover:bg-accent-teal/5 hover:text-accent-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-teal focus-visible:ring-offset-2",
+                    "dark:hover:border-brand-gold/60 dark:hover:bg-brand-gold/10 dark:hover:text-brand-gold",
+                  )}
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
             <ModeToggle />
+            {!loading && !user && <AuthDialog />}
             <button
               type="button"
               onClick={() => setIsMenuOpen((open) => !open)}
