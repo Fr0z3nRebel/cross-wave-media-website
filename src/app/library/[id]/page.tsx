@@ -108,14 +108,16 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
 
       <section className="py-10">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          {markdown ? (
-            <MarkdownBody markdown={markdown} />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              This resource does not have a full article yet. Use the download
-              link above to access the content.
-            </p>
-          )}
+          <div className="rounded-2xl border-2 border-accent-teal/40 bg-card px-6 py-5 shadow-sm dark:border-brand-gold/40">
+            {markdown ? (
+              <MarkdownBody markdown={markdown} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                This resource does not have a full article yet. Use the download
+                link above to access the content.
+              </p>
+            )}
+          </div>
         </div>
       </section>
     </main>

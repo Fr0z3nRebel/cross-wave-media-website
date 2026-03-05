@@ -51,7 +51,9 @@ export function ArticlePageLayout({ article }: ArticlePageLayoutProps) {
 
       <section className="relative z-10 mt-10 space-y-10">
         <ArticleSocialBar article={article} />
-        <ArticleBody article={article} />
+        <div className="w-full rounded-3xl border-2 border-accent-teal/40 bg-card px-6 py-5 shadow-md dark:border-brand-gold/40">
+          <ArticleBody article={article} />
+        </div>
         <TheologicalContextCallout article={article} />
       </section>
     </article>
