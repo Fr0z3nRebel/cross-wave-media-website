@@ -7,6 +7,11 @@ export interface Resource {
   description: string;
   downloadUrl: string;
   thumbnailUrl: string;
+  /**
+   * Optional rich content for the resource.
+   * Stored as a JSON payload (e.g., markdown).
+   */
+  content?: unknown;
 }
 
 const resources = [

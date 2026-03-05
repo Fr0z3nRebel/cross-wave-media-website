@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import { AuthDialog } from "@/components/auth/AuthDialog";
@@ -35,7 +35,21 @@ const navItems = [
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { user, supabase, loading } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data: { profile?: { role?: string } }) => {
+        setIsAdmin(data.profile?.role === "admin");
+      })
+      .catch(() => setIsAdmin(false));
+  }, [user]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -71,6 +85,16 @@ export function Header() {
                   </Link>
                 </li>
               ))}
+              {isAdmin && (
+                <li>
+                  <Link
+                    href="/admin"
+                    className="text-sm font-medium text-accent-teal transition-colors hover:text-accent-teal/80 dark:text-brand-gold dark:hover:text-brand-gold/80"
+                  >
+                    Admin
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
 
@@ -131,6 +155,17 @@ export function Header() {
                   </Link>
                 </li>
               ))}
+              {isAdmin && (
+                <li>
+                  <Link
+                    href="/admin"
+                    className="block rounded-md px-2 py-2 text-sm font-medium text-accent-teal transition-colors hover:bg-accent-teal/10 dark:text-brand-gold dark:hover:bg-brand-gold/10"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
         </div>

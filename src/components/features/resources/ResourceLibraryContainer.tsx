@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,8 +25,29 @@ export function ResourceLibraryContainer() {
   const [activeCategory, setActiveCategory] =
     useState<ResourceCategoryFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const resources = useMemo(() => getResources(), []);
+  useEffect(() => {
+    async function fetchResources() {
+      try {
+        const res = await fetch("/api/resources");
+        if (res.ok) {
+          const { resources: data } = (await res.json()) as {
+            resources: Resource[];
+          };
+          setResources(data ?? []);
+        } else {
+          setResources(getResources());
+        }
+      } catch {
+        setResources(getResources());
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchResources();
+  }, []);
 
   const filteredResources = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -52,9 +73,17 @@ export function ResourceLibraryContainer() {
 
   const showEmptyState = filteredResources.length === 0;
 
+  if (loading) {
+    return (
+      <section className="space-y-6" aria-label="Filterable resource library">
+        <ResourceSkeleton />
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-6" aria-label="Filterable resource library">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Tabs
           value={activeCategory}
           onValueChange={(value) =>
@@ -69,32 +98,34 @@ export function ResourceLibraryContainer() {
           </TabsList>
         </Tabs>
 
-        <div className="w-full max-w-xs md:max-w-sm">
-          <label className="block text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            Search resources
-          </label>
-          <div className="mt-2 relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground/70">
-              <Search className="h-4 w-4" aria-hidden />
-            </span>
-            <Input
-              placeholder="Search titles and descriptions..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="pl-9"
-              aria-label="Search resources"
-            />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <p className="text-xs text-muted-foreground">
+            Showing{" "}
+            <span className="font-semibold text-foreground">
+              {filteredResources.length}
+            </span>{" "}
+            resource{filteredResources.length === 1 ? "" : "s"}
+          </p>
+
+          <div className="w-full max-w-xs sm:max-w-sm">
+            <label className="block text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Search resources
+            </label>
+            <div className="mt-2 relative">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground/70">
+                <Search className="h-4 w-4" aria-hidden />
+              </span>
+              <Input
+                placeholder="Search titles and descriptions..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="pl-9"
+                aria-label="Search resources"
+              />
+            </div>
           </div>
         </div>
       </div>
-
-      <p className="text-xs text-muted-foreground">
-        Showing{" "}
-        <span className="font-semibold text-foreground">
-          {filteredResources.length}
-        </span>{" "}
-        resource{filteredResources.length === 1 ? "" : "s"}
-      </p>
 
       {/* Empty state when filters/search yield no results */}
       {showEmptyState ? (

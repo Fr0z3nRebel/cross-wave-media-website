@@ -273,3 +273,7 @@ export function getArticleBySlug(slug: string): Article | undefined {
   return mockArticles.find((article) => article.slug === slug);
 }
 
+export function getArticleById(id: string): Article | undefined {
+  return mockArticles.find((article) => article.id === id);
+}
+

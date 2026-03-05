@@ -1,5 +1,6 @@
-"use client";
+ "use client";
 
+import Link from "next/link";
 import { Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -36,19 +37,24 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     >
       <div className="flex h-full flex-col justify-between">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-              <span className="inline-flex items-center rounded-full border border-accent-teal/40 bg-accent-teal/10 px-2 py-0.5 font-medium text-accent-teal dark:border-brand-gold/40 dark:bg-brand-gold/10 dark:text-brand-gold">
-                {formatTypeLabel(resource.type)}
-              </span>
+          <Link
+            href={`/library/${resource.id}`}
+            className="block flex-1 min-w-0 focus-visible:outline-none"
+          >
+            <div>
+              <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="inline-flex items-center rounded-full border border-accent-teal/40 bg-accent-teal/10 px-2 py-0.5 font-medium text-accent-teal dark:border-brand-gold/40 dark:bg-brand-gold/10 dark:text-brand-gold">
+                  {formatTypeLabel(resource.type)}
+                </span>
+              </div>
+              <h3 className="font-heading text-lg font-semibold leading-snug text-card-foreground">
+                {resource.title}
+              </h3>
+              <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                {resource.description}
+              </p>
             </div>
-            <h3 className="font-heading text-lg font-semibold leading-snug text-card-foreground">
-              {resource.title}
-            </h3>
-            <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
-              {resource.description}
-            </p>
-          </div>
+          </Link>
 
           <motion.a
             href={resource.downloadUrl}
@@ -63,10 +69,14 @@ export function ResourceCard({ resource }: ResourceCardProps) {
 
         <div className="mt-4 flex items-center justify-between gap-4 text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground">
           <span>Downloadable</span>
-          <span className="text-accent-teal dark:text-brand-gold/80">The Vault</span>
+          <span className="text-accent-teal dark:text-brand-gold/80">
+            The Vault
+          </span>
         </div>
       </div>
     </motion.article>
   );
 }
+
+
 

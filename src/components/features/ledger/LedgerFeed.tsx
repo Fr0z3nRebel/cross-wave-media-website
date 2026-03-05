@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Article } from "@/types";
 import { useInView } from "framer-motion";
 import { useEffect, useRef } from "react";
@@ -34,13 +35,20 @@ function LedgerFeedItem({
     onArticleInView(article);
   }, [article, inView, onArticleInView]);
 
-  return (
+  const href = `/ledger/${article.slug ?? article.id}`;
+  const card = (
     <ArticleCard
       ref={ref as any}
       article={article}
       variant={variant}
       index={index}
     />
+  );
+
+  return (
+    <Link href={href} className="block focus-visible:outline-none">
+      {card}
+    </Link>
   );
 }
 

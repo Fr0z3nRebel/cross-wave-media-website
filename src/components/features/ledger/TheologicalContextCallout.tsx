@@ -11,7 +11,7 @@ export function TheologicalContextCallout({
     "This piece invites you to consider how this theme fits within the wider story of Scripture and the character of God.";
 
   return (
-    <section className="mx-auto mt-12 max-w-3xl rounded-2xl border-2 border-brand-gold/70 bg-brand-paper/50 px-6 py-5 text-sm leading-relaxed text-foreground shadow-sm dark:bg-slate-900/60">
+    <section className="mx-auto mt-12 max-w-3xl rounded-2xl border-2 border-accent-teal/60 bg-brand-paper/50 px-6 py-5 text-sm leading-relaxed text-foreground shadow-sm dark:border-brand-gold/70 dark:bg-slate-900/60">
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
         Theological Context
       </p>

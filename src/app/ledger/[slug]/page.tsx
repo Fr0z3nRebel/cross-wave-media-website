@@ -1,27 +1,36 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { Article } from "@/types";
-import { getArticleBySlug, getMockArticles } from "@/lib/data";
+import {
+  getArticleBySlug as getMockArticleBySlug,
+  getArticleById as getMockArticleById,
+} from "@/lib/data";
+import {
+  getArticleBySlug as getArticleBySlugFromDb,
+  getArticleById as getArticleByIdFromDb,
+} from "@/lib/articles";
 import { ArticlePageLayout } from "@/components/features/ledger";
 
 interface LedgerArticlePageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  const articles = getMockArticles();
-
-  return articles
-    .filter((article): article is Article & { slug: string } => !!article.slug)
-    .map((article) => ({ slug: article.slug }));
+async function resolveArticle(param: string): Promise<Article | null> {
+  const dbBySlug = await getArticleBySlugFromDb(param);
+  if (dbBySlug) return dbBySlug;
+  const dbById = await getArticleByIdFromDb(param);
+  if (dbById) return dbById;
+  const mockBySlug = getMockArticleBySlug(param);
+  if (mockBySlug) return mockBySlug;
+  const mockById = getMockArticleById(param);
+  return mockById ?? null;
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
-}: LedgerArticlePageProps): Metadata {
-  const article = getArticleBySlug(params.slug);
+}: LedgerArticlePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await resolveArticle(slug);
 
   if (!article) {
     return {
@@ -49,8 +58,11 @@ export function generateMetadata({
   };
 }
 
-export default function LedgerArticlePage({ params }: LedgerArticlePageProps) {
-  const article = getArticleBySlug(params.slug);
+export default async function LedgerArticlePage({
+  params,
+}: LedgerArticlePageProps) {
+  const { slug } = await params;
+  const article = await resolveArticle(slug);
 
   if (!article) {
     notFound();
@@ -58,4 +70,5 @@ export default function LedgerArticlePage({ params }: LedgerArticlePageProps) {
 
   return <ArticlePageLayout article={article} />;
 }
+
 

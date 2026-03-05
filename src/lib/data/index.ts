@@ -4,5 +4,6 @@ export {
   mockArticles,
   getMockArticles,
   getArticleBySlug,
+  getArticleById,
 } from "../../../lib/data/mockArticles";
 

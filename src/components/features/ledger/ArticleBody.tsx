@@ -1,4 +1,5 @@
 import type { Article } from "@/types";
+import { MarkdownBody } from "@/components/markdown/MarkdownBody";
 
 interface ArticleBodyProps {
   article: Article;
@@ -10,11 +11,37 @@ interface ProseNode {
   text?: string;
 }
 
+type MarkdownContent = {
+  format: "markdown";
+  markdown: string;
+};
+
+function isMarkdownContent(content: unknown): content is MarkdownContent {
+  return (
+    !!content &&
+    typeof content === "object" &&
+    (content as MarkdownContent).format === "markdown" &&
+    typeof (content as MarkdownContent).markdown === "string"
+  );
+}
+
 export function ArticleBody({ article }: ArticleBodyProps) {
-  const doc = (article.content as { type?: string; content?: ProseNode[] } | null) ?? {
-    type: "doc",
-    content: [],
-  };
+  // Prefer markdown-rendered content when available (Supabase-backed articles)
+  if (isMarkdownContent(article.content)) {
+    return (
+      <MarkdownBody
+        markdown={article.content.markdown}
+        className="mx-auto max-w-3xl"
+      />
+    );
+  }
+
+  // Fallback to existing structured prose content (mock articles)
+  const doc =
+    (article.content as { type?: string; content?: ProseNode[] } | null) ?? {
+      type: "doc",
+      content: [],
+    };
 
   const paragraphs: string[] =
     doc?.type === "doc" && Array.isArray(doc.content)
@@ -49,4 +76,5 @@ export function ArticleBody({ article }: ArticleBodyProps) {
     </div>
   );
 }
+
 
